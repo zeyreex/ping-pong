@@ -42,18 +42,39 @@ class Ball(GameSprite):
         super().__init__(img, x, y, size, speed)
         self.speed_x = speed_x
         self.speed_y = speed_y
+        self.max_speed = speed_x * 4
+        self.start_pos = (x,y)
+        self.start_speed_x = speed_x
+        self.start_speed_y = speed_y
 
     def update(self):
         self.rect.x += self.speed_x
         self.rect.y += self.speed_y
 
-    def bounce_x(self):
+    def bounce_x(self,player=None):
         kick_sound.play()
         self.speed_x *= -1
+
+        if player:
+            player_center = player.rect.y + player.rect.height / 2
+            ball_center = self.rect.y + self.rect.height / 2
+
+            relative_kick = (ball_center - player_center) / (player.rect.height)
+
+            self.spped_y = relative_kick * 5
+
+            if abs(self.speed_x) < self.max_speed:
+                self.speed_x *= 1.1
 
     def bounce_y(self):
         kick_sound.play()
         self.speed_y *= -1
+
+    def reset_ball(self):
+        self.rect.x = self.start_pos[0]
+        self.rect.y = self.start_pos[1]
+        self.speed_x = self.start_speed_x
+        self.speed_y = self.start_speed_y
 
 # Настройка игровой сцены
 win_size = (700, 500)
@@ -115,8 +136,30 @@ while game:
             ball.bounce_y()
 
         # Отскок от ракеток
-        if sprite.collide_rect(ball, player_1) or sprite.collide_rect(ball, player_2):
-            ball.bounce_x()
+        if sprite.collide_rect(ball, player_1):
+            if ball.rect.left < player_1.rect.right:
+                ball.rect.left = player_1.rect.right + 1
+                ball.bounce_x(player_1)
+            else:
+                if ball.rect.centery < player_1.rect.centery:
+                    ball.rect.bottom = player_1.rect.top - 1
+                else: 
+                    ball.rect.top = player_1.rect.bottom + 1 
+                ball.bounce_y()
+
+
+        if sprite.collide_rect(ball, player_2):
+            if ball.rect.right >  player_2.rect.left:
+                ball.rect.right = player_2.rect.left + 1
+                ball.bounce_x(player_2)
+            else:
+                if ball.rect.centery < player_2.rect.centery:
+                    ball.rect.bottom = player_2.rect.top - 1
+                else: 
+                    ball.rect.top = player_2.rect.bottom + 1 
+                ball.bounce_y()
+
+        
 
         if ball.rect.x < 0:
             goal_sound.play(maxtime=3500)
@@ -146,7 +189,7 @@ while game:
         ball.reset()
 
     else:
-        ball = Ball(ball_img, 300, 300, (40, 40), 0, 3, 3)
+        ball.reset_ball()
         if not score_1 >= max_score and not score_2 >= max_score:
             finish = False
             time.delay(3000)
