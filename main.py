@@ -37,6 +37,22 @@ class Player(GameSprite):
         if keys[self.key_down] and self.rect.y < win_size[1] - self.size[1] - 5:
             self.rect.y += self.speed
 
+class Ball(GameSprite):
+    def __init__(self, img, x, y, size, speed, speed_x, speed_y):
+        super().__init__(img, x, y, size, speed)
+        self.speed_x = speed_x
+        self.speed_y = speed_y
+
+    def update(self):
+        self.rect.x += self.speed_x
+        self.rect.y += self.speed_y
+
+    def bounce_x(self):
+        self.speed_x *= -1
+
+    def bounce_y(self):
+        self.speed_y *= -1
+
 # Настройка игровой сцены
 win_size = (700, 500)
 window = display.set_mode(win_size)
@@ -54,6 +70,8 @@ racket_img = "racket.png"
 player_1 = Player(racket_img, 30, 200, (40, 140), 4, K_w, K_s)
 player_2 = Player(racket_img, 620, 200, (40, 140), 4, K_UP, K_DOWN)
 
+ball_img = "ball.png"
+ball = Ball(ball_img, 300, 300, (40, 40), 0, 3, 3)
 
 # Надписи игры
 font.init()
@@ -71,13 +89,22 @@ while game:
 
     if not finish:
         window.blit(background, (0, 0))
+        
+        # Отскок от верхней и нижней границ
+        if ball.rect.y < 0 or ball.rect.y > win_size[1] - 50:
+            ball.bounce_y()
+
+        # Отскок от ракеток
+        if sprite.collide_rect(ball, player_1) or sprite.collide_rect(ball, player_2):
+            ball.bounce_x()
 
 
         player_1.update()
         player_2.update()
-        
+        ball.update()
 
         player_1.reset()
         player_2.reset()
+        ball.reset()
     display.update()
     clock.tick(FPS)
