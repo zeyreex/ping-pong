@@ -25,13 +25,17 @@ class GameSprite(sprite.Sprite):
 
 # Класс для спрайта-игрока (стрелочки)
 class Player(GameSprite):
+    def __init__(self, img, x, y, size, speed, key_up, key_down): 
+        super().__init__(img, x, y, size, speed)
+        self.key_up = key_up
+        self.key_down = key_down
     def update(self):
         keys = key.get_pressed()
 
-        if keys[K_LEFT] and self.rect.x > 5:
-            self.rect.x -= self.speed
-        if keys[K_RIGHT] and self.rect.x < win_size[0] - self.size[0] - 5:
-            self.rect.x += self.speed
+        if keys[self.key_up] and self.rect.y > 5:
+            self.rect.y -= self.speed
+        if keys[self.key_down] and self.rect.y < win_size[1] - self.size[1] - 5:
+            self.rect.y += self.speed
 
 # Настройка игровой сцены
 win_size = (700, 500)
@@ -45,6 +49,11 @@ game = True
 finish = False
 clock = time.Clock()
 FPS = 60
+
+racket_img = "racket.png"
+player_1 = Player(racket_img, 30, 200, (40, 140), 4, K_w, K_s)
+player_2 = Player(racket_img, 620, 200, (40, 140), 4, K_UP, K_DOWN)
+
 
 # Надписи игры
 font.init()
@@ -64,5 +73,11 @@ while game:
         window.blit(background, (0, 0))
 
 
+        player_1.update()
+        player_2.update()
+        
+
+        player_1.reset()
+        player_2.reset()
     display.update()
     clock.tick(FPS)
