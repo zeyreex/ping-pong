@@ -65,6 +65,9 @@ game = True
 finish = False
 clock = time.Clock()
 FPS = 60
+score_1 = 0
+score_2 = 0
+max_score = 2
 
 racket_img = "racket.png"
 player_1 = Player(racket_img, 30, 200, (40, 140), 4, K_w, K_s)
@@ -75,11 +78,13 @@ ball = Ball(ball_img, 300, 300, (40, 40), 0, 3, 3)
 
 # Надписи игры
 font.init()
-my_font = font.SysFont("verdana", 24)
-endgame_font = font.SysFont("verdana", 76)
-life_font = font.SysFont("verdana", 60)
-win = endgame_font.render("Ты выиграл!", True, (51, 255, 51))
-lose = endgame_font.render("Ты проиграл!", True, (255, 51, 51))
+my_font = font.SysFont("verdana", 20, bold=True)
+endgame_font = font.SysFont("verdana", 40)
+win_1 = endgame_font.render("Игрок 1 победил!", True, (0, 180, 60))
+win_2 = endgame_font.render("Игрок 2 победил!", True, (0, 180, 60))
+goal_font = font.SysFont("verdana", 30)
+goal_1 = goal_font.render("Игрок 1 забивает!", True, (0, 0, 255))
+goal_2 = goal_font.render("Игрок 2 забивает!", True, (255, 0, 0))
 
 # Игровой цикл
 while game:
@@ -89,6 +94,11 @@ while game:
 
     if not finish:
         window.blit(background, (0, 0))
+
+        score_1_text = my_font.render(f"Счёт 1: {score_1}", True, (0, 0, 0))
+        score_2_text = my_font.render(f"Счёт 2: {score_2}", True, (0, 0, 0))
+        window.blit(score_1_text, (10, 15))
+        window.blit(score_2_text, (win_size[0] - 115, 15))
         
         # Отскок от верхней и нижней границ
         if ball.rect.y < 0 or ball.rect.y > win_size[1] - 50:
@@ -98,6 +108,22 @@ while game:
         if sprite.collide_rect(ball, player_1) or sprite.collide_rect(ball, player_2):
             ball.bounce_x()
 
+        if ball.rect.x < 0:
+            finish = True
+            score_2 += 1
+            if score_2 >= max_score:
+                window.blit(win_2, (180, 200))
+            else:
+                window.blit(goal_2, (210, 200))
+
+        if ball.rect.x > win_size[0] - 50:
+            finish = True
+            score_1 += 1
+            if score_1 >= max_score:
+                window.blit(win_1, (180, 200))
+            else:
+                window.blit(goal_1, (210, 200))
+
 
         player_1.update()
         player_2.update()
@@ -106,5 +132,11 @@ while game:
         player_1.reset()
         player_2.reset()
         ball.reset()
+
+    else:
+        ball = Ball(ball_img, 300, 300, (40, 40), 0, 3, 3)
+        if not score_1 >= max_score and not score_2 >= max_score:
+            finish = False
+            time.delay(2000)
     display.update()
     clock.tick(FPS)
